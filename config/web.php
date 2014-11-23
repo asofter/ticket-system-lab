@@ -8,8 +8,12 @@ $config = [
     'bootstrap' => ['log'],
     'components' => [
         'request' => [
-            // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            'cookieValidationKey' => '',
+            'enableCsrfValidation' => false,
+            'cookieValidationKey' => 'CKOW35QMQHZ',
+
+            'parsers' => [
+                'application/json' => 'yii\web\JsonParser',
+            ]
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -20,6 +24,19 @@ $config = [
         ],
         'errorHandler' => [
             'errorAction' => 'site/error',
+        ],
+        'urlManager'=> [
+            'class'=>'yii\web\UrlManager',
+            'enablePrettyUrl' => true,
+            'enableStrictParsing' => true,
+            'showScriptName' => false,
+            'suffix' => '/',
+            'rules' =>  [
+                '/'=>'site/index',
+                ['class' => 'yii\rest\UrlRule', 'controller' => 'api'],
+                '<controller:\w+>/<action:[0-9a-zA-Z_\-]+>'                       => '<controller>/<action>',
+                '<controller:\w+>'                                                => '<controller>/index',
+            ]
         ],
         'mailer' => [
             'class' => 'yii\swiftmailer\Mailer',
