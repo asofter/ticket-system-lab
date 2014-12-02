@@ -33,6 +33,9 @@ $config = [
             'suffix' => '/',
             'rules' =>  [
                 '/'=>'site/index',
+                'search/' => 'site/search',
+                'buy/' => 'site/buy',
+                'thanks/' => 'site/thanks',
                 ['class' => 'yii\rest\UrlRule', 'controller' => 'api'],
                 '<controller:\w+>/<action:[0-9a-zA-Z_\-]+>'                       => '<controller>/<action>',
                 '<controller:\w+>'                                                => '<controller>/index',

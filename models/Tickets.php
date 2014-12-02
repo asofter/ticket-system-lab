@@ -6,6 +6,9 @@ use yii\db\ActiveRecord;
 
 class Tickets extends ActiveRecord
 {
+    const STATUS_READY = 0;
+    const STATUS_PAID = 1;
+
     public function behaviors()
     {
         return [
@@ -27,6 +30,14 @@ class Tickets extends ActiveRecord
         return $this->hasOne(User::className(), ['id' => 'user_id']);
     }
 
+    public function getFromStation() {
+        return $this->hasOne(Stations::className(), ['id' => 'from_station_id']);
+    }
+
+    public function getToStation() {
+        return $this->hasOne(Stations::className(), ['id' => 'to_station_id']);
+    }
+
     public function attributeLabels() {
         return [
 
@@ -42,10 +53,12 @@ class Tickets extends ActiveRecord
             [
                 [
                     'user_id', 'train_id', 'from_station_id',
-                    'to_station_id', 'created_at', 'updated_at'
+                    'to_station_id', 'created_at', 'updated_at',
+                    'status', 'pay_method'
                 ], 'integer'
             ],
-            ['date', 'string']
+            ['date', 'string'],
+            ['status', 'default', 'value' => self::STATUS_READY]
         ];
     }
 }
