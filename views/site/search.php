@@ -15,14 +15,14 @@ $this->title = "Пошук квитків на " . date("d.m.Y", strtotime($date
                     <div class="col-lg-8">
                         <h4 class="list-group-item-heading">Потяг №<?= $train['train_number']; ?></h4>
                         <p class="list-group-item-text">
-                            <i class="glyphicon glyphicon-time"></i> Відправлення: <?= date("H:i", strtotime($schedules[$train['id']]['from'])); ?><br />
-                            <i class="glyphicon glyphicon-time"></i> Прибуття: <?= date("H:i", strtotime($schedules[$train['id']]['to'])); ?><br />
-                            <i class="glyphicon glyphicon-user"></i> Вільно: <?= $freePlaces; ?> місць
+                            <i class="glyphicon glyphicon-time"></i> Відправлення: <span class="label label-primary"><?= date("H:i", strtotime($schedules[$train['id']]['from'])); ?></span><br />
+                            <i class="glyphicon glyphicon-time"></i> Прибуття: <span class="label label-primary"><?= date("H:i", strtotime($schedules[$train['id']]['to'])); ?></span><br />
+                            <i class="glyphicon glyphicon-user"></i> Вільно: <span class="label label-primary"><?= $freePlaces; ?> місць</span>
                         </p>
                     </div>
                     <div class="col-lg-4">
                         <div class="pull-right" style="font-size:38px;padding-top:10px;">
-                            <i class="glyphicon glyphicon-money"></i> 0 грн
+                            <i class="glyphicon glyphicon-money"></i> <?= $prices[$train['id']]; ?> грн
                         </div>
                     </div>
                 </div>

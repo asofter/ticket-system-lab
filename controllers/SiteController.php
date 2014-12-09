@@ -7,6 +7,7 @@ use app\models\FindForm;
 use app\models\PrepareForm;
 use app\models\Stations;
 use app\models\Tickets;
+use app\models\TrainPrices;
 use app\models\Trains;
 use app\models\TrainSchedule;
 use app\models\TrainStations;
@@ -41,6 +42,29 @@ class SiteController extends Controller
                 'class' => 'yii\web\ErrorAction',
             ]
         ];
+    }
+
+    public function actionValidateSearch() {
+        if(!Yii::$app->getRequest()->isAjax || !Yii::$app->getRequest()->isPost) {
+            throw new HttpException(403);
+        }
+
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $result = ['success' => 1];
+
+        $form = new FindForm();
+        if($form->load($_POST) && $form->validate()) {
+           if(strtotime($form->date) < time()) {
+               $result['error'] = "Дата не може бути раніше, ніж сьогодні.";
+               $result['success'] = 0;
+           }
+        } else {
+            $result['success'] = 0;
+            $result['error'] = "Валідація не пройдена.";
+        }
+
+        return $result;
     }
 
     public function actionGetStations($term) {
@@ -89,13 +113,14 @@ class SiteController extends Controller
         // Get all available trains on direction
         $trainsFrom = TrainStations::find()->andWhere(['station_id' => $fromStation['id']])->groupBy(['train_id'])->asArray()->all();
         $trainsTo = TrainStations::find()->andWhere(['station_id' => $toStation['id']])->groupBy(['train_id'])->asArray()->all();
+        $trainsFromByIds = ArrayHelper::map($trainsFrom, 'id', 'train_id');
+        $trainsToByIds = ArrayHelper::map($trainsTo, 'id', 'train_id');
         $trainsIds = array_intersect(ArrayHelper::map($trainsFrom, 'id', 'train_id'), ArrayHelper::map($trainsTo, 'id', 'train_id'));
         $trains = Trains::find()->andWhere(['id' => $trainsIds])->all();
 
         // Get schedules
         $trainSchedules = TrainSchedule::find()->andWhere(['train_station_id' => ArrayHelper::merge(ArrayHelper::map($trainsFrom, 'id', 'id'), ArrayHelper::map($trainsTo, 'id', 'id'))])->asArray()->all();
         $trainSchedules = ArrayHelper::map($trainSchedules, 'train_station_id', 'time');
-
         $schedules = [];
         foreach($trainsFrom as $trainFrom) {
             $schedules[$trainFrom['train_id']]['from'] = $trainSchedules[$trainFrom['id']];
@@ -104,10 +129,18 @@ class SiteController extends Controller
             $schedules[$trainTo['train_id']]['to'] = $trainSchedules[$trainTo['id']];
         }
 
+        // Get paid tickets count
         $ticketsCount = [];
         foreach($trains as $train) {
             $allTicketsCount = Tickets::find()->andWhere(['train_id' => $train['id'], 'status' => Tickets::STATUS_PAID, 'date' => $date, 'from_station_id' => $fromStation['id'], 'to_station_id' => $toStation['id']])->count();
             $ticketsCount[$train['id']] = $allTicketsCount;
+        }
+
+        // Get prices
+        $allPrices = TrainPrices::find()->andWhere(['from_train_station_id' => ArrayHelper::map($trainsFrom, 'id', 'id'), 'to_train_station_id' => ArrayHelper::map($trainsTo, 'id', 'id')])->asArray()->all();
+        $prices = [];
+        foreach($allPrices as $price) {
+            $prices[$trainsFromByIds[$price['from_train_station_id']]] = $price['price'];
         }
 
         return $this->render('search', [
@@ -116,7 +149,8 @@ class SiteController extends Controller
             'date' => $date,
             'trains' => $trains,
             'schedules' => $schedules,
-            'ticketsCount' => $ticketsCount
+            'ticketsCount' => $ticketsCount,
+            'prices' => $prices
         ]);
     }
 
@@ -193,8 +227,24 @@ class SiteController extends Controller
             throw new HttpException(404);
         }
 
-        // TODO: generate pdf ticket
-
         return $this->render('thanks', ['ticket' => $ticket]);
+    }
+
+    public function actionGetTicket($id) {
+        return $this->runAction('thanks', ['id' => $id]);
+    }
+
+    public function actionPrintTicket($id) {
+        $ticket = Tickets::findOne($id);
+        if(!$ticket) {
+            throw new HttpException(404);
+        }
+
+        $ticket = $this->renderPartial('ticket', ['ticket' => $ticket]);
+
+        $mpdf = new \mPDF('utf-8', 'A4', '8', '', 10, 10, 7, 7, 10, 10);
+        $mpdf->charset_in = 'utf-8';
+        $mpdf->WriteHTML($ticket);
+        $mpdf->Output("ticket" . date("Y-m-d") . ".pdf", 'I');
     }
 }

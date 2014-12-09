@@ -8,13 +8,12 @@ $this->title = 'Система бронювання залізничних кв�
 <div class="row">
     <div class="col-md-12 text-center">
         <strong id="logo">Ticket System</strong>
-        <h2>Найвидший спосіб купити залізничні квитки.</h2>
     </div> <!-- /.col-md-12 -->
 </div> <!-- /.row -->
 
 <div class="row">
     <div class="col-md-4 col-md-offset-4 well well-sm">
-        <?php $form = ActiveForm::begin(['id' => 'form-search', 'method' => 'post']); ?>
+        <?php $form = ActiveForm::begin(['id' => 'form-search', 'method' => 'post', 'options' => ['class' => 'formSearchTrains']]); ?>
         <?= Html::activeHiddenInput($searchForm, 'from_station'); ?>
         <?= Html::activeHiddenInput($searchForm, 'to_station'); ?>
         <?= \yii\jui\DatePicker::widget([

@@ -88,4 +88,4 @@ $this->title = "Дякую! Квиток успішно куплено";
     </div>
 </div>
 
-<div>SHOW PDF TICKET HERE</div>
+<iframe style="width:100%;height:400px;" src="<?= Url::to(['/site/print-ticket', 'id' => $ticket['id']]); ?>"></iframe>

@@ -13,6 +13,7 @@ class FindForm extends Model {
     public function rules()
     {
         return [
+            [['from_station', 'to_station'], 'required'],
             [['from_station', 'to_station'], 'integer'],
             ['date', 'date', 'format' => 'Y-m-d'],
             ['from_station', 'compare', 'compareAttribute' => 'to_station', 'operator' => '!='],
